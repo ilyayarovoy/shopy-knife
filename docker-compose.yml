@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+
+  # --- БАЗА ДАННЫХ ---
+  postgres:
+    image: postgres:15          # готовый образ, ничего не пишем сами
+    restart: always
+    environment:
+      POSTGRES_DB: knifedb
+      POSTGRES_USER: knifeuser
+      POSTGRES_PASSWORD: knifepass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # данные не умрут при перезапуске
+    ports:
+      - "5432:5432"             # только для локальной отладки через DBeaver/pgAdmin
+
+  # --- БЭКЕНД ---
+  backend:
+    build: ./backend            # берёт Dockerfile из папки backend/
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://knifeuser:knifepass@postgres:5432/knifedb
+      # обрати внимание: хост — "postgres", не "localhost"
+      # внутри docker-сети сервисы видят друг друга по имени
+    depends_on:
+      - postgres                # postgres стартует раньше backend
+
+  # --- БОТ ---
+  bot:
+    build: ./bot
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://knifeuser:knifepass@postgres:5432/knifedb
+      BOT_TOKEN: your_token_here
+    depends_on:
+      - postgres
+
+  # --- ФРОНТЕНД ---
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "3000:80"               # nginx внутри слушает 80, снаружи мы открываем 3000
+
+# volumes объявляем отдельно — это именованный том Docker
+volumes:
+  postgres_data:

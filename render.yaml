@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: knife-shop-api
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt && alembic upgrade head"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: knife-shop-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.12.0
+
+databases:
+  - name: knife-shop-db
+    databaseName: knifedb
+    user: knifeuser
+    plan: free
+    region: frankfurt
