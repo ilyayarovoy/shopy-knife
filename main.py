@@ -1,20 +1,35 @@
+import asyncio
+import os
+import uvicorn
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from aiogram import Bot, Dispatcher
 
-app = FastAPI(title="Knife Shop API")
+app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.get("/")
 async def root():
-    return {"message": "Knife Shop API is running"}
+    return {"status": "ok", "message": "Knife Shop API is running"}
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+
+
+# 3. Главная функция запуска
+async def main():
+    # Берем порт, который дает Render
+    port = int(os.environ.get("PORT", 8000))
+
+    # Настройка сервера
+    config = uvicorn.Config(app, host="0.0.0.0", port=port)
+    server = uvicorn.Server(config)
+
+    # Запускаем сервер и бота одновременно
+    await asyncio.gather(
+        server.serve()
+    )
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("Приложение остановлено")
