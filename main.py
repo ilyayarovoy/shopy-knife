@@ -39,7 +39,19 @@ app.include_router(products.router, prefix="/api")
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "bot": "active", "api": "running"}
+    return {"status": "ok", "api": "running"}
+
+
+import traceback
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "traceback": traceback.format_exc()}
+    )
 
 
 if __name__ == '__main__':
