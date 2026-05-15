@@ -1,12 +1,11 @@
 import logging
-import asyncio
 from fastapi import FastAPI
 import uvicorn
 
 from contextlib import asynccontextmanager
+from alembic.config import Config
+from alembic import command
 
-# from app.config import settings
-# from app.bot import bot, dp
 from backend.api.routers import users, products
 from backend.database.engine import engine
 from backend.database.base import Base
@@ -15,13 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 logger = logging.getLogger(__name__)
 
+def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
-async def init_db():
-    """Инициализация БД при старте"""
-    async with engine.begin() as conn:
-        # Создаём все таблицы
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("✅ Database initialized")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    run_migrations()  # запускается при старте
+    yield
 
 app = FastAPI(title="AI Psychologist API")
 
@@ -40,18 +40,6 @@ app.include_router(products.router, prefix="/api")
 @app.get("/")
 async def root():
     return {"status": "ok", "api": "running"}
-
-
-import traceback
-from fastapi import Request
-from fastapi.responses import JSONResponse
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": str(exc), "traceback": traceback.format_exc()}
-    )
 
 
 if __name__ == '__main__':
