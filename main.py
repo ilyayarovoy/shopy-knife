@@ -1,35 +1,49 @@
+import logging
 import asyncio
-import os
-import uvicorn
 from fastapi import FastAPI
-from aiogram import Bot, Dispatcher
+import uvicorn
 
-app = FastAPI()
+from contextlib import asynccontextmanager
+
+# from app.config import settings
+# from app.bot import bot, dp
+from backend.api.routers import users, products
+from backend.database.engine import engine
+from backend.database.base import Base
+
+from fastapi.middleware.cors import CORSMiddleware
+
+logger = logging.getLogger(__name__)
+
+
+async def init_db():
+    """Инициализация БД при старте"""
+    async with engine.begin() as conn:
+        # Создаём все таблицы
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("✅ Database initialized")
+
+app = FastAPI(title="AI Psychologist API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешить все домены
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(users.router, prefix="/api")
+app.include_router(products.router, prefix="/api")
 
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "Knife Shop API is running"}
+    return {"status": "ok", "bot": "active", "api": "running"}
 
 
+if __name__ == '__main__':
+    import os
 
-# 3. Главная функция запуска
-async def main():
-    # Берем порт, который дает Render
-    port = int(os.environ.get("PORT", 8000))
-
-    # Настройка сервера
-    config = uvicorn.Config(app, host="0.0.0.0", port=port)
-    server = uvicorn.Server(config)
-
-    # Запускаем сервер и бота одновременно
-    await asyncio.gather(
-        server.serve()
-    )
-
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        print("Приложение остановлено")
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

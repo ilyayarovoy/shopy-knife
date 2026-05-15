@@ -31,7 +31,7 @@ async def get_user_by_tg_id(tg_id: int, service: Annotated[UserService, Depends(
     return user
 
 @router.get("", summary="Добавить пользователя", tags=tags)
-async def create_user(new_user_data: CreateUserSchema, service: Annotated[UserService, Depends(get_user_service)])
+async def create_user(new_user_data: CreateUserSchema, service: Annotated[UserService, Depends(get_user_service)]):
     new_user = await service.create_new_user_service(user=new_user_data)
     user = new_user.username or new_user.tg_id
     return {"msg": "User created successfully", "user": user}
