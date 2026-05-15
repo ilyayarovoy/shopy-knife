@@ -15,12 +15,12 @@ class UserService:
         our_users = await self.user_repo.get_all_users()
         return [
             {
-                "id": u.id,
-                "tg_id": u.tg_id,
-                "username": u.username,
-                "created_at": u.created_at
+                "id": user.id,
+                "tg_id": user.tg_id,
+                "username": user.username,
+                "created_at": user.created_at
             }
-            for u in our_users
+            for user in our_users
         ]
 
     async def get_user_by_tg_id_service(self, tg_id):
