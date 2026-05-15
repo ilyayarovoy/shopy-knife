@@ -18,8 +18,7 @@ class UserService:
                 "id": u.id,
                 "tg_id": u.tg_id,
                 "username": u.username,
-                "created_at": u.created_at,
-                "is_premium": u.is_premium,
+                "created_at": u.created_at
             }
             for u in our_users
         ]
@@ -37,7 +36,7 @@ class UserService:
             new_user = await self.user_repo.create_user(
                 tg_id=user.tg_id,
                 username=user.username,
-                firstname=user.first_name,
-                lastname=user.last_name
+                firstname=user.firstname,
+                lastname=user.lastname
             )
             return new_user
