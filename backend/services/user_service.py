@@ -36,7 +36,7 @@ class UserService:
             new_user = await self.user_repo.create_user(
                 tg_id=user.tg_id,
                 username=user.username,
-                firstname=user.firstname,
-                lastname=user.lastname
+                first_name=user.first_name,
+                last_name=user.last_name
             )
             return new_user
