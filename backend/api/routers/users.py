@@ -37,6 +37,14 @@ async def create_user(new_user_data: CreateUserSchema, service: Annotated[UserSe
     return {"msg": "User created successfully", "user": user}
 
 
+@router.delete("/{tg_id}", summary="Удаить пользователя по TG_ID", tags=tags)
+async def delete_user(tg_id: int, service: Annotated[UserService, Depends(get_user_service)]):
+    user = await service.delete_user_by_tg_id_service(tg_id=tg_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Not found user by TG ID {}".format(tg_id))
+    return {"msg": "User deleted successfully", "user": user}
+
+
 
 
 

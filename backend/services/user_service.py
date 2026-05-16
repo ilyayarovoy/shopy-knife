@@ -40,3 +40,9 @@ class UserService:
                 last_name=user.last_name
             )
             return new_user
+
+    async def delete_user_by_tg_id_service(self, tg_id: int):
+        user = await self.user_repo.get_user_by_tg_id(tg_id=tg_id)
+        if user:
+            await self.user_repo.delete_user(user=user)
+        return user
