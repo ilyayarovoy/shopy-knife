@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 
@@ -30,14 +30,13 @@ async def get_user_by_tg_id(tg_id: int, service: Annotated[UserService, Depends(
         raise HTTPException(status_code=404, detail="Not found user by TG ID {}".format(tg_id))
     return user
 
-@router.post("", summary="Добавить пользователя", tags=tags)
+@router.post("", summary="Добавить пользователя", tags=tags, status_code=status.HTTP_201_CREATED)
 async def create_user(new_user_data: CreateUserSchema, service: Annotated[UserService, Depends(get_user_service)]):
     new_user = await service.create_new_user_service(user=new_user_data)
-    user = new_user.username or new_user.tg_id
-    return {"msg": "User created successfully", "user": user}
+    return new_user
 
 
-@router.delete("/{tg_id}", summary="Удаить пользователя по TG_ID", tags=tags)
+@router.delete("/{tg_id}", summary="Удалить пользователя по TG_ID", tags=tags)
 async def delete_user(tg_id: int, service: Annotated[UserService, Depends(get_user_service)]):
     user = await service.delete_user_by_tg_id_service(tg_id=tg_id)
     if not user:
