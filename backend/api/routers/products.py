@@ -28,7 +28,7 @@ async def get_product_by_tg_id(product_id: int, service: Annotated[ProductServic
     product = await service.get_product_by_id_service(product_id=product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Not found user by TG ID {}".format(product_id))
-    return product_id
+    return product
 
 @router.post("", summary="Добавить товар", tags=tags, status_code=status.HTTP_201_CREATED)
 async def create_product(new_product_data: CreateProductSchema, service: Annotated[ProductService, Depends(get_product_service)]):

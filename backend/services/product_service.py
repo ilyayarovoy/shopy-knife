@@ -16,7 +16,7 @@ class ProductService:
         return [
             {
                 "id": product.id,
-                "title": products.title,
+                "title": product.title,
                 "description": product.description,
                 "price": product.price,
                 "stock": product.stock,
@@ -30,21 +30,15 @@ class ProductService:
         product = await self.product_repo.get_product_by_id(product_id=product_id)
         return product
 
-
     async def create_new_product_service(self, product_data: CreateProductSchema):
-        existing_products = await self.product_repo.get_product_by_id(product_id=product_data.id)
-        if existing_products:
-            return existing_products
-        else:
-            new_product = await self.product_repo.create_product(
-                title=product_data.title,
-                description=product_data.description,
-                price=product_data.stock,
-                stock=product_data.stock,
-                image_url=product_data.image_url
-            )
-            return new_product
-
+        new_product = await self.product_repo.create_product(
+            title=product_data.title,
+            description=product_data.description,
+            price=product_data.price,
+            stock=product_data.stock,
+            image_url=product_data.image_url
+        )
+        return new_product
     async def delete_product_by_id_service(self, product_id: int):
         product = await self.product_repo.get_product_by_id(product_id=product_id)
         if product:
