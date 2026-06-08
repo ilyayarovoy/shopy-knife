@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 
 from backend.database.engine import get_session
 from backend.services.product_service import ProductService
-from backend.api.schemas.product_schemas import CreateProductSchema
+from backend.api.schemas.product_schemas import CreateProductSchema, UpdateProductSchema, ProductResponseSchema
 
 router = APIRouter(prefix="/products")
 tags = ['Товары']
@@ -17,31 +17,44 @@ def get_product_service(session: SessionDep) -> ProductService:
 
 
 @router.get("/all", summary="Получить всех товары", tags=tags)
-async def get_all_products(service: Annotated[ProductService, Depends(get_product_service)]):
-    all_products = await service.get_all_products_service()
+async def get_all_products(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    title: str | None = Query(None),
+    min_price: float | None = Query(None, ge=0),
+    max_price: float | None = Query(None, ge=0),
+    service: Annotated[ProductService, Depends(get_product_service)] = None
+):
+    all_products = await service.get_all_products_service(skip=skip, limit=limit, title=title, min_price=min_price, max_price=max_price)
     if not all_products:
         raise HTTPException(status_code=404, detail="Not found products")
     return all_products
 
-@router.get("/{product_id}", summary="Получить товар по ID", tags=tags)
-async def get_product_by_tg_id(product_id: int, service: Annotated[ProductService, Depends(get_product_service)]):
+@router.get("/{product_id}", summary="Получить товар по ID", tags=tags, response_model=ProductResponseSchema)
+async def get_product_by_id(product_id: int, service: Annotated[ProductService, Depends(get_product_service)]):
     product = await service.get_product_by_id_service(product_id=product_id)
     if not product:
-        raise HTTPException(status_code=404, detail="Not found user by TG ID {}".format(product_id))
+        raise HTTPException(status_code=404, detail="Not found product by ID {}".format(product_id))
     return product
 
-@router.post("", summary="Добавить товар", tags=tags, status_code=status.HTTP_201_CREATED)
+@router.post("", summary="Добавить товар", tags=tags, status_code=status.HTTP_201_CREATED, response_model=ProductResponseSchema)
 async def create_product(new_product_data: CreateProductSchema, service: Annotated[ProductService, Depends(get_product_service)]):
     new_product = await service.create_new_product_service(product_data=new_product_data)
     return new_product
 
+@router.put("/{product_id}", summary="Обновить товар", tags=tags, response_model=ProductResponseSchema)
+async def update_product(product_id: int, product_data: UpdateProductSchema, service: Annotated[ProductService, Depends(get_product_service)]):
+    updated_product = await service.update_product_service(product_id=product_id, product_data=product_data)
+    if not updated_product:
+        raise HTTPException(status_code=404, detail="Not found product by ID {}".format(product_id))
+    return updated_product
 
 @router.delete("/{product_id}", summary="Удалить товар ID", tags=tags)
 async def delete_product(product_id: int, service: Annotated[ProductService, Depends(get_product_service)]):
     product = await service.delete_product_by_id_service(product_id=product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Not found product by ID {}".format(product_id))
-    return {"msg": "Product deleted successfully", "user": product}
+    return {"msg": "Product deleted successfully", "product": product}
 
 
 

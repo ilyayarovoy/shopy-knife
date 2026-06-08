@@ -8,8 +8,17 @@ class ProductRepository:
         self.session = session
 
 
-    async def get_all_products(self):
+    async def get_all_products(self, skip: int = 0, limit: int = 100, title: str | None = None, min_price: float | None = None, max_price: float | None = None):
         stmt = select(ProductModel)
+
+        if title:
+            stmt = stmt.where(ProductModel.title.ilike(f"%{title}%"))
+        if min_price is not None:
+            stmt = stmt.where(ProductModel.price >= min_price)
+        if max_price is not None:
+            stmt = stmt.where(ProductModel.price <= max_price)
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
@@ -38,6 +47,15 @@ class ProductRepository:
         await self.session.refresh(new_product)
         return new_product
 
+    async def update_product(self, product: ProductModel, **kwargs):
+        for key, value in kwargs.items():
+            if value is not None:
+                setattr(product, key, value)
+
+        self.session.add(product)
+        await self.session.commit()
+        await self.session.refresh(product)
+        return product
 
     async def delete_product(self, product):
         await self.session.delete(product)
