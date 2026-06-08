@@ -24,12 +24,12 @@ class ProductRepository:
                           description: str,
                           price: float,
                           stock: int,
-                             image_url: str,):
+                          images: list[str] | None = None,):
         new_product = ProductModel(title=title,
                              description=description,
                              price=price,
                              stock=stock,
-                             image_url=image_url
+                             images=images
                                    )
 
 

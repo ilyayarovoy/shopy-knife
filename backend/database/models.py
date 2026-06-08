@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, Text, BigInteger, Numeric
+from sqlalchemy import String, ForeignKey, Text, BigInteger, Numeric, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import func
 from datetime import datetime
@@ -25,7 +25,7 @@ class ProductModel(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     stock: Mapped[int] = mapped_column(nullable=False)
-    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True, default=None)
+    images: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True, default=None)
 
 
 class OrderModel(Base):

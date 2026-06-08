@@ -20,7 +20,7 @@ class ProductService:
                 "description": product.description,
                 "price": product.price,
                 "stock": product.stock,
-                "image_url": product.image_url
+                "images": product.images
             }
             for product in products
         ]
@@ -36,7 +36,7 @@ class ProductService:
             description=product_data.description,
             price=product_data.price,
             stock=product_data.stock,
-            image_url=product_data.image_url
+            images=product_data.images
         )
         return new_product
     async def delete_product_by_id_service(self, product_id: int):
