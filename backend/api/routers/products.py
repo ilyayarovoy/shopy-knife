@@ -16,7 +16,7 @@ def get_product_service(session: SessionDep) -> ProductService:
     return ProductService(session)
 
 
-@router.get("/all", summary="Получить всех товары", tags=tags)
+@router.get("/all", summary="Получить всех товары", tags=tags, response_model=list[ProductResponseSchema])
 async def get_all_products(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
