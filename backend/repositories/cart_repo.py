@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.database.models import CartItemModel
 
@@ -9,19 +10,19 @@ class CartRepository:
         self.session = session
 
     async def get_user_cart(self, user_id: int):
-        stmt = select(CartItemModel).where(CartItemModel.user_id == user_id)
+        stmt = select(CartItemModel).where(CartItemModel.user_id == user_id).options(selectinload(CartItemModel.product))
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
     async def get_cart_item_by_id(self, item_id: int):
-        stmt = select(CartItemModel).where(CartItemModel.id == item_id)
+        stmt = select(CartItemModel).where(CartItemModel.id == item_id).options(selectinload(CartItemModel.product))
         item = await self.session.execute(stmt)
         return item.scalar_one_or_none()
 
     async def get_cart_item_by_user_and_product(self, user_id: int, product_id: int):
         stmt = select(CartItemModel).where(
             (CartItemModel.user_id == user_id) & (CartItemModel.product_id == product_id)
-        )
+        ).options(selectinload(CartItemModel.product))
         item = await self.session.execute(stmt)
         return item.scalar_one_or_none()
 
