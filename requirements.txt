@@ -8,3 +8,7 @@ python-dotenv
 aiogram
 aiofiles
 pydantic
+pytest
+pytest-asyncio
+httpx
+aiosqlite
