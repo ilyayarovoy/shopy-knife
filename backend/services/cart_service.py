@@ -21,6 +21,7 @@ class CartService:
                 "quantity": item.quantity,
                 "product": {
                     "id": item.product.id,
+                    "category_id": item.product.category_id,
                     "title": item.product.title,
                     "price": item.product.price,
                     "description": item.product.description,
@@ -46,8 +47,11 @@ class CartService:
             "quantity": item.quantity,
             "product": {
                 "id": item.product.id,
+                "category_id": item.product.category_id,
                 "title": item.product.title,
                 "price": item.product.price,
+                "description": item.product.description,
+                "images": item.product.images
             },
             "created_at": item.created_at
         }
@@ -68,8 +72,11 @@ class CartService:
             "quantity": updated_item.quantity,
             "product": {
                 "id": updated_item.product.id,
+                "category_id": updated_item.product.category_id,
                 "title": updated_item.product.title,
                 "price": updated_item.product.price,
+                "description": updated_item.product.description,
+                "images": updated_item.product.images
             },
             "created_at": updated_item.created_at
         }
