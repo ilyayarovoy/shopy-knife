@@ -13,6 +13,7 @@ class UpdateCartItemSchema(BaseModel):
 
 class CartItemProductSchema(BaseModel):
     id: int
+    category_id: int
     title: str
     price: float
     description: str | None
