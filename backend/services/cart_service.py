@@ -56,10 +56,13 @@ class CartService:
             "created_at": item.created_at
         }
 
-    async def update_cart_item_service(self, item_id: int, quantity: int):
+    async def update_cart_item_service(self, item_id: int, user_id: int, quantity: int):
         item = await self.cart_repo.get_cart_item_by_id(item_id=item_id)
         if not item:
             return None
+
+        if item.user_id != user_id:
+            return {"error": "Forbidden: Item does not belong to this user", "status_code": 403}
 
         if item.product.stock < quantity:
             return {"error": "Not enough stock"}
@@ -81,10 +84,13 @@ class CartService:
             "created_at": updated_item.created_at
         }
 
-    async def remove_from_cart_service(self, item_id: int):
+    async def remove_from_cart_service(self, item_id: int, user_id: int):
         item = await self.cart_repo.get_cart_item_by_id(item_id=item_id)
         if not item:
             return None
+
+        if item.user_id != user_id:
+            return {"error": "Forbidden: Item does not belong to this user"}
 
         await self.cart_repo.remove_from_cart(item=item)
         return item

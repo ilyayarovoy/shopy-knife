@@ -45,28 +45,32 @@ async def add_to_cart(
     return result
 
 
-@router.put("/item/{item_id}", summary="Обновить количество товара в корзине", tags=tags, response_model=CartItemResponseSchema)
+@router.put("/user/{user_id}/item/{item_id}", summary="Обновить количество товара в корзине", tags=tags, response_model=CartItemResponseSchema)
 async def update_cart_item(
+    user_id: int = Path(..., gt=0),
     item_id: int = Path(..., gt=0),
     update_data: UpdateCartItemSchema = None,
     service: Annotated[CartService, Depends(get_cart_service)] = None
 ):
-    result = await service.update_cart_item_service(item_id=item_id, quantity=update_data.quantity)
+    result = await service.update_cart_item_service(item_id=item_id, user_id=user_id, quantity=update_data.quantity)
     if result is None:
         raise HTTPException(status_code=404, detail="Cart item not found")
     if isinstance(result, dict) and "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
+        raise HTTPException(status_code=result.get("status_code", 400), detail=result["error"])
     return result
 
 
-@router.delete("/item/{item_id}", summary="Удалить товар из корзины", tags=tags)
+@router.delete("/user/{user_id}/item/{item_id}", summary="Удалить товар из корзины", tags=tags)
 async def remove_from_cart(
+    user_id: int = Path(..., gt=0),
     item_id: int = Path(..., gt=0),
     service: Annotated[CartService, Depends(get_cart_service)] = None
 ):
-    item = await service.remove_from_cart_service(item_id=item_id)
-    if not item:
+    item = await service.remove_from_cart_service(item_id=item_id, user_id=user_id)
+    if item is None:
         raise HTTPException(status_code=404, detail="Cart item not found")
+    if isinstance(item, dict) and "error" in item:
+        raise HTTPException(status_code=403, detail=item["error"])
     return {"msg": "Item removed from cart successfully"}
 
 
