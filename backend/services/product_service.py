@@ -11,8 +11,8 @@ class ProductService:
         self.product_repo = ProductRepository(session=self.session)
 
 
-    async def get_all_products_service(self, skip: int = 0, limit: int = 100, title: str | None = None, min_price: float | None = None, max_price: float | None = None):
-        products = await self.product_repo.get_all_products(skip=skip, limit=limit, title=title, min_price=min_price, max_price=max_price)
+    async def get_all_products_service(self, skip: int = 0, limit: int = 100, title: str | None = None, category_id: int | None = None, min_price: float | None = None, max_price: float | None = None):
+        products = await self.product_repo.get_all_products(skip=skip, limit=limit, title=title, category_id=category_id, min_price=min_price, max_price=max_price)
         return [
             {
                 "id": product.id,
