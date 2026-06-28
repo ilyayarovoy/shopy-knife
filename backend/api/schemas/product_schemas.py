@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class CreateProductSchema(BaseModel):
+    category_id: int = Field(examples=[1])
     title: str = Field(examples=["Баварский клин"])
     description: str | None = Field(default=None, examples=['Описание...'])
     price: float = Field(gt=0, examples=[1299.99])
@@ -13,6 +14,7 @@ class CreateProductSchema(BaseModel):
 
 
 class UpdateProductSchema(BaseModel):
+    category_id: int | None = Field(default=None, examples=[1])
     title: str | None = Field(default=None, examples=["Баварский клин"])
     description: str | None = Field(default=None, examples=['Описание...'])
     price: float | None = Field(default=None, gt=0, examples=[1299.99])
@@ -25,6 +27,7 @@ class UpdateProductSchema(BaseModel):
 
 class ProductResponseSchema(BaseModel):
     id: int
+    category_id: int
     title: str
     description: str | None
     price: float

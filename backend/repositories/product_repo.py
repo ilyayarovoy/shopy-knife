@@ -8,11 +8,13 @@ class ProductRepository:
         self.session = session
 
 
-    async def get_all_products(self, skip: int = 0, limit: int = 100, title: str | None = None, min_price: float | None = None, max_price: float | None = None):
+    async def get_all_products(self, skip: int = 0, limit: int = 100, title: str | None = None, category_id: int | None = None, min_price: float | None = None, max_price: float | None = None):
         stmt = select(ProductModel)
 
         if title:
             stmt = stmt.where(ProductModel.title.ilike(f"%{title}%"))
+        if category_id is not None:
+            stmt = stmt.where(ProductModel.category_id == category_id)
         if min_price is not None:
             stmt = stmt.where(ProductModel.price >= min_price)
         if max_price is not None:
@@ -29,12 +31,14 @@ class ProductRepository:
 
 
     async def create_product(self,
+                          category_id: int,
                           title: str,
                           description: str,
                           price: float,
                           stock: int,
                           images: list[str] | None = None,):
-        new_product = ProductModel(title=title,
+        new_product = ProductModel(category_id=category_id,
+                             title=title,
                              description=description,
                              price=price,
                              stock=stock,

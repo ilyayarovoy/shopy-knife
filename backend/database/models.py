@@ -21,11 +21,14 @@ class ProductModel(Base):
     __tablename__ = 'products'
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     stock: Mapped[int] = mapped_column(nullable=False)
     images: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True, default=None)
+
+    category: Mapped["CategoryModel"] = relationship("CategoryModel", backref="products")
 
 
 class CategoryModel(Base):

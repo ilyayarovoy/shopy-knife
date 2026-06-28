@@ -16,6 +16,7 @@ class ProductService:
         return [
             {
                 "id": product.id,
+                "category_id": product.category_id,
                 "title": product.title,
                 "description": product.description,
                 "price": product.price,
@@ -32,6 +33,7 @@ class ProductService:
 
     async def create_new_product_service(self, product_data: CreateProductSchema):
         new_product = await self.product_repo.create_product(
+            category_id=product_data.category_id,
             title=product_data.title,
             description=product_data.description,
             price=product_data.price,
@@ -47,6 +49,7 @@ class ProductService:
 
         updated_product = await self.product_repo.update_product(
             product,
+            category_id=product_data.category_id,
             title=product_data.title,
             description=product_data.description,
             price=product_data.price,

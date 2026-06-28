@@ -21,11 +21,12 @@ async def get_all_products(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     title: str | None = Query(None),
+    category_id: int | None = Query(None),
     min_price: float | None = Query(None, ge=0),
     max_price: float | None = Query(None, ge=0),
     service: Annotated[ProductService, Depends(get_product_service)] = None
 ):
-    all_products = await service.get_all_products_service(skip=skip, limit=limit, title=title, min_price=min_price, max_price=max_price)
+    all_products = await service.get_all_products_service(skip=skip, limit=limit, title=title, category_id=category_id, min_price=min_price, max_price=max_price)
     if not all_products:
         raise HTTPException(status_code=404, detail="Not found products")
     return all_products
