@@ -23,7 +23,10 @@ async def get_all_categories(
     service: Annotated[CategoryService, Depends(get_category_service)] = None
 ):
     categories = await service.get_all_categories_service(skip=skip, limit=limit)
+    if not categories:
+        raise HTTPException(status_code=404, detail="Category not found")
     return categories
+
 
 
 @router.get("/{category_id}", summary="Получить категорию по ID", tags=tags, response_model=CategoryResponseSchema)
