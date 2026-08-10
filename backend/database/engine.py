@@ -4,11 +4,17 @@ import os
 
 load_dotenv()
 
-DATABASE_URL = os.getenv('DATABASE_URL', '').replace(
-    'postgresql://', 'postgresql+asyncpg://'
-)
+raw_url = os.getenv('DATABASE_URL', '')
+DATABASE_URL = raw_url.replace('postgresql://', 'postgresql+asyncpg://').split('?')[0]
 
-engine = create_async_engine(url=DATABASE_URL, echo=True)
+engine = create_async_engine(
+    url=DATABASE_URL,
+    echo=True,
+    connect_args={
+        "ssl": "require",
+        "statement_cache_size": 0,  # важно для Neon pooler
+    },
+)
 
 session_maker = async_sessionmaker(
     bind=engine,
