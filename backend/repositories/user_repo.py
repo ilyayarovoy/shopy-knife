@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.models import UserModel
@@ -36,6 +36,7 @@ class UserRepository:
 
 
     async def delete_user(self, user):
-        await self.session.delete(user)
+        stmt = delete(UserModel).where(UserModel.id == user.id)
+        await self.session.execute(stmt)
         await self.session.commit()
         return user
