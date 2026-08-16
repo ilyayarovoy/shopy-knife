@@ -66,5 +66,17 @@ class CartItemModel(Base):
     product: Mapped["ProductModel"] = relationship("ProductModel", backref="cart_items")
 
 
+class FavoriteModel(Base):
+    __tablename__ = 'favorites'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+
+    user: Mapped["UserModel"] = relationship("UserModel", backref="favorites")
+    product: Mapped["ProductModel"] = relationship("ProductModel", backref="favorites")
+
+
 
 
