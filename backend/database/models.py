@@ -53,6 +53,20 @@ class OrderModel(Base):
     user: Mapped["UserModel"] = relationship("UserModel", backref="orders")
 
 
+class OrderItemModel(Base):
+    __tablename__ = 'order_items'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False)
+    quantity: Mapped[int] = mapped_column(nullable=False)
+    price_at_order: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+
+    order: Mapped["OrderModel"] = relationship("OrderModel", backref="items")
+    product: Mapped["ProductModel"] = relationship("ProductModel")
+
+
 class CartItemModel(Base):
     __tablename__ = 'cart_items'
 

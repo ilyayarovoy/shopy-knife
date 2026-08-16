@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.repositories.order_repo import OrderRepository
+from backend.repositories.order_item_repo import OrderItemRepository
 from backend.repositories.cart_repo import CartRepository
 from backend.repositories.product_repo import ProductRepository
 
@@ -9,6 +10,7 @@ class OrderService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.order_repo = OrderRepository(session=self.session)
+        self.order_item_repo = OrderItemRepository(session=self.session)
         self.cart_repo = CartRepository(session=self.session)
         self.product_repo = ProductRepository(session=self.session)
 
@@ -43,9 +45,17 @@ class OrderService:
         # Create order
         order = await self.order_repo.create_order(user_id=user_id, total_price=total_price, status="new")
 
-        # Update product stock for each cart item
+        # Create order items and update product stock
         for item in cart_items:
             product = item.product
+            # Create order item with price snapshot
+            await self.order_item_repo.create_order_item(
+                order_id=order.id,
+                product_id=product.id,
+                quantity=item.quantity,
+                price_at_order=float(product.price)
+            )
+            # Update product stock
             new_stock = product.stock - item.quantity
             await self.product_repo.update_product(product=product, stock=new_stock)
 
@@ -65,11 +75,32 @@ class OrderService:
         if not order:
             return None
 
+        # Get order items
+        items = await self.order_item_repo.get_order_items(order_id=order_id)
+
+        items_data = []
+        for item in items:
+            items_data.append({
+                "id": item.id,
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price_at_order": item.price_at_order,
+                "product": {
+                    "id": item.product.id,
+                    "category_id": item.product.category_id,
+                    "title": item.product.title,
+                    "price": item.product.price,
+                    "description": item.product.description,
+                    "images": item.product.images
+                }
+            })
+
         return {
             "id": order.id,
             "user_id": order.user_id,
             "total_price": order.total_price,
             "status": order.status,
+            "items": items_data,
             "created_at": order.created_at
         }
 

@@ -80,12 +80,19 @@ async def test_get_order_by_id(client, test_user, test_product):
     checkout_response = await client.post(f"/api/orders/user/{test_user.id}/checkout")
     order_id = checkout_response.json()["id"]
 
-    # Get order
+    # Get order with items
     response = await client.get(f"/api/orders/{order_id}")
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == order_id
     assert data["user_id"] == test_user.id
+    assert "items" in data
+    assert len(data["items"]) == 1
+    assert data["items"][0]["product_id"] == test_product.id
+    assert data["items"][0]["quantity"] == 2
+    assert data["items"][0]["price_at_order"] == 99.99
+    assert "product" in data["items"][0]
+    assert data["items"][0]["product"]["title"] == test_product.title
 
 
 @pytest.mark.asyncio
@@ -148,3 +155,25 @@ async def test_checkout_updates_product_stock(client, test_user, test_product):
     product_response = await client.get(f"/api/products/{test_product.id}")
     updated_product = product_response.json()
     assert updated_product["stock"] == initial_stock - 3
+
+
+@pytest.mark.asyncio
+async def test_order_items_created(client, test_user, test_product):
+    # Add multiple items to cart
+    await client.post(f"/api/cart/user/{test_user.id}/add", json={
+        "product_id": test_product.id,
+        "quantity": 2
+    })
+
+    # Checkout
+    checkout_response = await client.post(f"/api/orders/user/{test_user.id}/checkout")
+    order_id = checkout_response.json()["id"]
+
+    # Get order and verify items
+    response = await client.get(f"/api/orders/{order_id}")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["quantity"] == 2
+    assert data["items"][0]["price_at_order"] == 99.99
+    assert data["items"][0]["product"]["id"] == test_product.id
