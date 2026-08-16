@@ -52,7 +52,7 @@ class FavoriteService:
         }
 
     async def remove_from_favorites_service(self, item_id: int, user_id: int):
-        item = await self.favorite_repo.get_favorite_by_id(item_id=item_id)
+        item = await self.favorite_repo.get_favorite_by_id(favorite_id=item_id)
         if not item:
             return None
 
