@@ -60,7 +60,7 @@ async def test_update_cart_item(client, test_user, test_product):
     item_id = add_response.json()["id"]
 
     # Update quantity
-    response = await client.put(f"/api/cart/item/{item_id}", json={
+    response = await client.put(f"/api/cart/user/{test_user.id}/item/{item_id}", json={
         "quantity": 5
     })
     assert response.status_code == 200
@@ -78,7 +78,7 @@ async def test_update_cart_item_insufficient_stock(client, test_user, test_produ
     item_id = add_response.json()["id"]
 
     # Try to update quantity beyond stock
-    response = await client.put(f"/api/cart/item/{item_id}", json={
+    response = await client.put(f"/api/cart/user/{test_user.id}/item/{item_id}", json={
         "quantity": 100
     })
     assert response.status_code == 400
@@ -94,7 +94,7 @@ async def test_remove_from_cart(client, test_user, test_product):
     item_id = add_response.json()["id"]
 
     # Remove from cart
-    response = await client.delete(f"/api/cart/item/{item_id}")
+    response = await client.delete(f"/api/cart/user/{test_user.id}/item/{item_id}")
     assert response.status_code == 200
 
     # Verify removal

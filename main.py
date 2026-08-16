@@ -10,7 +10,7 @@ from alembic.config import Config
 from alembic import command
 import uvicorn
 
-from backend.api.routers import users, products, categories, cart, favorites
+from backend.api.routers import users, products, categories, cart, favorites, orders
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ app.include_router(products.router, prefix="/api")
 app.include_router(categories.router, prefix="/api")
 app.include_router(cart.router, prefix="/api")
 app.include_router(favorites.router, prefix="/api")
+app.include_router(orders.router, prefix="/api")
 
 
 @app.get("/")

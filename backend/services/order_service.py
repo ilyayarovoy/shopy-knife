@@ -1,0 +1,91 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.repositories.order_repo import OrderRepository
+from backend.repositories.cart_repo import CartRepository
+from backend.repositories.product_repo import ProductRepository
+
+
+class OrderService:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.order_repo = OrderRepository(session=self.session)
+        self.cart_repo = CartRepository(session=self.session)
+        self.product_repo = ProductRepository(session=self.session)
+
+    async def get_user_orders_service(self, user_id: int):
+        orders = await self.order_repo.get_user_orders(user_id=user_id)
+        result = []
+        for order in orders:
+            result.append({
+                "id": order.id,
+                "user_id": order.user_id,
+                "total_price": order.total_price,
+                "status": order.status,
+                "created_at": order.created_at
+            })
+        return result
+
+    async def checkout_service(self, user_id: int):
+        # Get all cart items for user
+        cart_items = await self.cart_repo.get_user_cart(user_id=user_id)
+
+        if not cart_items:
+            return {"error": "Cart is empty"}
+
+        # Calculate total price and validate stock
+        total_price = 0
+        for item in cart_items:
+            product = item.product
+            if product.stock < item.quantity:
+                return {"error": f"Not enough stock for {product.title}"}
+            total_price += float(product.price) * item.quantity
+
+        # Create order
+        order = await self.order_repo.create_order(user_id=user_id, total_price=total_price, status="new")
+
+        # Update product stock for each cart item
+        for item in cart_items:
+            product = item.product
+            new_stock = product.stock - item.quantity
+            await self.product_repo.update_product(product=product, stock=new_stock)
+
+        # Clear cart
+        await self.cart_repo.clear_user_cart(user_id=user_id)
+
+        return {
+            "id": order.id,
+            "user_id": order.user_id,
+            "total_price": order.total_price,
+            "status": order.status,
+            "created_at": order.created_at
+        }
+
+    async def get_order_by_id_service(self, order_id: int):
+        order = await self.order_repo.get_order_by_id(order_id=order_id)
+        if not order:
+            return None
+
+        return {
+            "id": order.id,
+            "user_id": order.user_id,
+            "total_price": order.total_price,
+            "status": order.status,
+            "created_at": order.created_at
+        }
+
+    async def update_order_status_service(self, order_id: int, new_status: str, user_id: int):
+        order = await self.order_repo.get_order_by_id(order_id=order_id)
+        if not order:
+            return None
+
+        if order.user_id != user_id:
+            return {"error": "Forbidden: Order does not belong to this user"}
+
+        updated_order = await self.order_repo.update_order_status(order=order, status=new_status)
+        return {
+            "id": updated_order.id,
+            "user_id": updated_order.user_id,
+            "total_price": updated_order.total_price,
+            "status": updated_order.status,
+            "created_at": updated_order.created_at
+        }
