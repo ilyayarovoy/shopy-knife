@@ -1,7 +1,7 @@
 """add order_items table
 
 Revision ID: 2026_08_16_add_order_items
-Revises: 2026_08_16_add_favorites
+Revises: 2026_08_16_001
 Create Date: 2026-08-16 16:07:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '2026_08_16_add_order_items'
-down_revision = '2026_08_16_add_favorites'
+down_revision = '2026_08_16_001'
 branch_labels = None
 depends_on = None
 
