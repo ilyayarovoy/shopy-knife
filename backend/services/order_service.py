@@ -120,3 +120,25 @@ class OrderService:
             "status": updated_order.status,
             "created_at": updated_order.created_at
         }
+
+    async def delete_order_service(self, order_id: int, user_id: int):
+        order = await self.order_repo.get_order_by_id(order_id=order_id)
+        if not order:
+            return None
+
+        if order.user_id != user_id:
+            return {"error": "Forbidden: Order does not belong to this user"}
+
+        if order.status != "new":
+            return {"error": f"Cannot delete order with status '{order.status}'. Only 'new' orders can be deleted."}
+
+        # Return stock to products
+        items = await self.order_item_repo.get_order_items(order_id=order_id)
+        for item in items:
+            product = item.product
+            new_stock = product.stock + item.quantity
+            await self.product_repo.update_product(product=product, stock=new_stock)
+
+        # Delete order (order_items will be deleted by CASCADE)
+        await self.order_repo.delete_order(order=order)
+        return {"message": "Order deleted successfully"}

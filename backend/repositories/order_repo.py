@@ -32,3 +32,7 @@ class OrderRepository:
         await self.session.commit()
         await self.session.refresh(order)
         return order
+
+    async def delete_order(self, order: OrderModel):
+        await self.session.delete(order)
+        await self.session.commit()

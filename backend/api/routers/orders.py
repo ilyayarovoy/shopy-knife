@@ -68,3 +68,17 @@ async def update_order_status(
     if isinstance(result, dict) and "error" in result:
         raise HTTPException(status_code=403, detail=result["error"])
     return result
+
+
+@router.delete("/{order_id}/user/{user_id}", summary="Удалить заказ (только статус 'new')", tags=tags)
+async def delete_order(
+    order_id: int = Path(..., gt=0),
+    user_id: int = Path(..., gt=0),
+    service: Annotated[OrderService, Depends(get_order_service)] = None
+):
+    result = await service.delete_order_service(order_id=order_id, user_id=user_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if isinstance(result, dict) and "error" in result:
+        raise HTTPException(status_code=400 if "Cannot delete" in result["error"] else 403, detail=result["error"])
+    return result

@@ -177,3 +177,71 @@ async def test_order_items_created(client, test_user, test_product):
     assert data["items"][0]["quantity"] == 2
     assert data["items"][0]["price_at_order"] == 99.99
     assert data["items"][0]["product"]["id"] == test_product.id
+
+
+@pytest.mark.asyncio
+async def test_delete_order_success(client, test_user, test_product):
+    # Create an order
+    await client.post(f"/api/cart/user/{test_user.id}/add", json={
+        "product_id": test_product.id,
+        "quantity": 2
+    })
+    checkout_response = await client.post(f"/api/orders/user/{test_user.id}/checkout")
+    order_id = checkout_response.json()["id"]
+    initial_stock = test_product.stock
+
+    # Delete order
+    response = await client.delete(f"/api/orders/{order_id}/user/{test_user.id}")
+    assert response.status_code == 200
+    assert "deleted successfully" in response.json()["message"]
+
+    # Verify order is gone
+    order_response = await client.get(f"/api/orders/{order_id}")
+    assert order_response.status_code == 404
+
+    # Verify stock was restored
+    product_response = await client.get(f"/api/products/{test_product.id}")
+    updated_product = product_response.json()
+    assert updated_product["stock"] == initial_stock
+
+
+@pytest.mark.asyncio
+async def test_delete_order_not_found(client, test_user):
+    response = await client.delete(f"/api/orders/999/user/{test_user.id}")
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_order_wrong_user(client, test_user, test_product):
+    # Create order for test_user
+    await client.post(f"/api/cart/user/{test_user.id}/add", json={
+        "product_id": test_product.id,
+        "quantity": 2
+    })
+    checkout_response = await client.post(f"/api/orders/user/{test_user.id}/checkout")
+    order_id = checkout_response.json()["id"]
+
+    # Try to delete as different user
+    response = await client.delete(f"/api/orders/{order_id}/user/999")
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_delete_order_not_new_status(client, test_user, test_product):
+    # Create order
+    await client.post(f"/api/cart/user/{test_user.id}/add", json={
+        "product_id": test_product.id,
+        "quantity": 2
+    })
+    checkout_response = await client.post(f"/api/orders/user/{test_user.id}/checkout")
+    order_id = checkout_response.json()["id"]
+
+    # Change status to processing
+    await client.put(f"/api/orders/{order_id}/user/{test_user.id}/status", json={
+        "status": "processing"
+    })
+
+    # Try to delete
+    response = await client.delete(f"/api/orders/{order_id}/user/{test_user.id}")
+    assert response.status_code == 400
+    assert "Cannot delete" in response.json()["detail"]
