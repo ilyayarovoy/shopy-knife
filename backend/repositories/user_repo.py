@@ -18,6 +18,11 @@ class UserRepository:
         user = await self.session.execute(stmt)
         return user.scalar_one_or_none()
 
+    async def get_user_by_id(self, user_id: int):
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        user = await self.session.execute(stmt)
+        return user.scalar_one_or_none()
+
     async def create_user(self,
                           tg_id: int,
                           username: str,

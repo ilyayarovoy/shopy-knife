@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Path
+from fastapi import APIRouter, Depends, HTTPException, status, Path, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 
 from backend.database.engine import get_session
 from backend.services.order_service import OrderService
+from backend.services.telegram_service import send_telegram_message
+from backend.repositories.user_repo import UserRepository
 from backend.api.schemas.order_schemas import (
     UpdateOrderStatusSchema,
     OrderResponseSchema,
@@ -23,12 +25,40 @@ def get_order_service(session: SessionDep) -> OrderService:
 
 @router.post("/user/{user_id}/checkout", summary="Оформить заказ", tags=tags, status_code=status.HTTP_201_CREATED, response_model=CheckoutResponseSchema)
 async def checkout(
+    background_tasks: BackgroundTasks,
     user_id: int = Path(..., gt=0),
-    service: Annotated[OrderService, Depends(get_order_service)] = None
+    service: Annotated[OrderService, Depends(get_order_service)] = None,
+    session: SessionDep = None
 ):
     result = await service.checkout_service(user_id=user_id)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
+
+    # Получить пользователя для отправки уведомления
+    user_repo = UserRepository(session)
+    user = await user_repo.get_user_by_id(user_id)
+
+    if user and user.tg_id:
+        # Формируем inline-клавиатуру для подтверждения
+        reply_markup = {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "Подтвердить",
+                        "callback_data": f"confirm_order:{result['id']}"
+                    }
+                ]
+            ]
+        }
+
+        # Отправка уведомления в фоне
+        background_tasks.add_task(
+            send_telegram_message,
+            chat_id=user.tg_id,
+            text=f"Вы оформили заказ №{result['id']} на сумму {float(result['total_price']):.2f} ₽",
+            reply_markup=reply_markup
+        )
+
     return result
 
 
@@ -81,4 +111,25 @@ async def delete_order(
         raise HTTPException(status_code=404, detail="Order not found")
     if isinstance(result, dict) and "error" in result:
         raise HTTPException(status_code=400 if "Cannot delete" in result["error"] else 403, detail=result["error"])
+    return result
+
+
+@router.patch("/{order_id}/confirm", summary="Подтвердить заказ", tags=tags, response_model=OrderResponseSchema)
+async def confirm_order(
+    order_id: int = Path(..., gt=0),
+    service: Annotated[OrderService, Depends(get_order_service)] = None
+):
+    """
+    Подтверждение заказа (вызывается из aiogram-бота при нажатии кнопки).
+    Меняет статус заказа с 'new' на 'confirmed'.
+    """
+    result = await service.update_order_status_service(
+        order_id=order_id,
+        new_status="confirmed",
+        user_id=None  # Пропускаем проверку владельца для bot callback
+    )
+    if result is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if isinstance(result, dict) and "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
     return result

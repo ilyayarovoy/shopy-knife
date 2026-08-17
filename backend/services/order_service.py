@@ -104,12 +104,13 @@ class OrderService:
             "created_at": order.created_at
         }
 
-    async def update_order_status_service(self, order_id: int, new_status: str, user_id: int):
+    async def update_order_status_service(self, order_id: int, new_status: str, user_id: int | None = None):
         order = await self.order_repo.get_order_by_id(order_id=order_id)
         if not order:
             return None
 
-        if order.user_id != user_id:
+        # Пропустить проверку владельца если user_id=None (для bot callback)
+        if user_id is not None and order.user_id != user_id:
             return {"error": "Forbidden: Order does not belong to this user"}
 
         updated_order = await self.order_repo.update_order_status(order=order, status=new_status)
