@@ -5,6 +5,43 @@ from backend.config import TELEGRAM_BOT_TOKEN
 logger = logging.getLogger(__name__)
 
 
+def format_order_message(order_data: dict) -> str:
+    """
+    Форматирует детальное сообщение о заказе для Telegram.
+
+    Args:
+        order_data: Данные заказа с items
+
+    Returns:
+        Отформатированный текст сообщения
+    """
+    order_id = order_data['id']
+    total_price = float(order_data['total_price'])
+    items = order_data.get('items', [])
+
+    # Заголовок
+    message = f"🛍 <b>Новый заказ #{order_id}</b>\n\n"
+
+    # Список товаров
+    if items:
+        message += "<b>Состав заказа:</b>\n"
+        for item in items:
+            product = item['product']
+            quantity = item['quantity']
+            price = float(item['price_at_order'])
+            item_total = price * quantity
+
+            message += f"• {product['title']}\n"
+            message += f"  {quantity} шт. × {price:.2f} ₽ = {item_total:.2f} ₽\n"
+        message += "\n"
+
+    # Итого
+    message += f"<b>Итого:</b> {total_price:.2f} ₽\n\n"
+    message += "Для подтверждения заказа нажмите кнопку ниже 👇"
+
+    return message
+
+
 async def send_telegram_message(
     chat_id: int,
     text: str,

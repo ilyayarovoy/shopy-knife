@@ -4,7 +4,7 @@ from typing import Annotated
 
 from backend.database.engine import get_session
 from backend.services.order_service import OrderService
-from backend.services.telegram_service import send_telegram_message
+from backend.services.telegram_service import send_telegram_message, format_order_message
 from backend.repositories.user_repo import UserRepository
 from backend.api.schemas.order_schemas import (
     UpdateOrderStatusSchema,
@@ -39,12 +39,15 @@ async def checkout(
     user = await user_repo.get_user_by_id(user_id)
 
     if user and user.tg_id:
+        # Получить полные данные заказа с товарами
+        order_details = await service.get_order_by_id_service(order_id=result['id'])
+
         # Формируем inline-клавиатуру для подтверждения
         reply_markup = {
             "inline_keyboard": [
                 [
                     {
-                        "text": "Подтвердить",
+                        "text": "✅ Подтвердить заказ",
                         "callback_data": f"confirm_order:{result['id']}"
                     }
                 ]
@@ -55,7 +58,7 @@ async def checkout(
         background_tasks.add_task(
             send_telegram_message,
             chat_id=user.tg_id,
-            text=f"Вы оформили заказ №{result['id']} на сумму {float(result['total_price']):.2f} ₽",
+            text=format_order_message(order_details),
             reply_markup=reply_markup
         )
 
