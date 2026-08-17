@@ -1,0 +1,29 @@
+Подтверждаю план в целом, по пунктам:
+
+1. tg_id как chat_id — да, всё верно, для приватных чатов это одно и то же значение, отдельно хранить/мигрировать не нужно.
+
+2. BackgroundTasks или await — берите BackgroundTasks. Разница в реализации минимальная (буквально одна обёртка в сигнатуре эндпоинта), а выигрыш ощутимый: пользователь в Next.js получает ответ сразу, не дожидаясь похода в Telegram API. Раз уж это делается один раз — нет смысла закладывать в MVP лишние 200-300ms задержки, когда неблокирующий вариант ничего не стоит по сложности:
+from fastapi import BackgroundTasks
+
+@app.post("/orders")
+async def create_order(
+    data: OrderCreate, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    order = create_order_in_db(db, data)
+    
+    background_tasks.add_task(
+        send_telegram_message,
+        chat_id=user.tg_id,
+        text=f"Вы оформили заказ №{order.id} на сумму {order.total_price:.2f} ₽",
+        reply_markup={...}
+    )
+    
+    return {"order_id": order.id}
+
+Единственный нюанс, который стоит держать в голове: если send_telegram_message упадёт с ошибкой внутри BackgroundTasks, это произойдёт уже после отправки ответа клиенту — то есть Next.js не узнает, что уведомление не доставлено. Для MVP это ок, но убедитесь, что внутри функции есть try/except с логированием (как и планировали), чтобы хотя бы в логах это было видно, а не терялось молча.
+
+3. Формат суммы — согласен, {order.total_price:.2f} ₽ полностью подходит.
+
+Можно начинать реализацию.

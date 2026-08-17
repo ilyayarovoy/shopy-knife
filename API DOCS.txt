@@ -1,0 +1,28 @@
+Пользователи
+https://shopy-knife-1.onrender.com/api/users/all - Получить всех юзеров
+https://shopy-knife-1.onrender.com/api/users/943635122 - Получить юзера по TG_ID
+
+Товары
+https://shopy-knife-1.onrender.com/api/products/all?skip=0&limit=100 - Получиь все товары
+https://shopy-knife-1.onrender.com/api/products/4 - Получить товар по ID
+
+
+Корзина
+https://shopy-knife-1.onrender.com/api/cart/user/4 - Получить корзину юзера
+https://shopy-knife-1.onrender.com/api/cart/user/4/add - Добавить товар в корзину
+https://shopy-knife-1.onrender.com/api/cart/user/4/item/19 - Удалить товар из корзины
+https://shopy-knife-1.onrender.com/api/cart/user/4/item/20 - Обновить кол-во товаров в корзине
+https://shopy-knife-1.onrender.com/api/cart/user/4/clear - Очистить корзину
+
+Избранное:
+https://shopy-knife-1.onrender.com/api/favorites/user/4 - Получиь список избранного юзера
+https://shopy-knife-1.onrender.com/api/favorites/user/4/add - Добавить товар в избранное
+https://shopy-knife-1.onrender.com/api/favorites/user/4/item/6 - Удалить товар из избранного
+https://shopy-knife-1.onrender.com/api/favorites/user/4/check/6 - Проверить находится ли товар в избранном
+
+
+Заказы
+https://shopy-knife-1.onrender.com/api/orders/user/4/checkout - Оформить заказ POST-запрос. На этом этапе подтягиваются данные из корзиныф юзера Формируется Таблица Order и OrderItem.
+https://shopy-knife-1.onrender.com/api/orders/user/4 - Получить заказы пользователя.
+https://shopy-knife-1.onrender.com/api/orders/3 - Получить заказ по Показывает подробные данные о товаре.
+https://shopy-knife-1.onrender.com/api/orders/3/user/4/status - Позваоляет обновить данные и заказе. Изначально статус товара = new, после можно поменять на done.

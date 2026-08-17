@@ -48,7 +48,7 @@ async def checkout(
                 [
                     {
                         "text": "✅ Подтвердить заказ",
-                        "callback_data": f"confirm_order:{result['id']}"
+                        "callback_data": f"confirm_order:{result['id']}:{user_id}"
                     }
                 ]
             ]
