@@ -15,12 +15,11 @@ def format_order_message(order_data: dict) -> str:
     Returns:
         Отформатированный текст сообщения
     """
-    order_id = order_data['id']
     total_price = float(order_data['total_price'])
     items = order_data.get('items', [])
 
     # Заголовок
-    message = f"🛍 <b>Новый заказ #{order_id}</b>\n\n"
+    message = "🛍 <b>Ваш заказ оформлен</b>\n\n"
 
     # Список товаров
     if items:
